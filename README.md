@@ -58,6 +58,6 @@ The license agreement for data usage implies the citation of the paper above. Pl
 
 
 ## <a id="con">Contact</a>
-If you have any concerns, please contact [2212534@mail.dhu.edu.cnn](2212534@mail.dhu.edu.cn)
+If you have any concerns, please contact [2212534@mail.dhu.edu.cn](2212534@mail.dhu.edu.cn)
 
 
