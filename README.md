@@ -52,6 +52,11 @@ MMCT
 ### <a id="dow">Dataset Downloads</a>
 The whole dataset can be downloaded from [Huggingface](https://huggingface.co/datasets/jellyShuang/MMCT). **Note that, each file needs to unzip by the password. You can decompress each `.zip` file in its folder after sending us (2212534@mail.dhu.edu.cn, ytzhang@dhu.edu.cn) the [LICENSE](https://github.com/shengyuhao/DIVOTrack/blob/main/LICENSE.md). in any format.** 
 
+
+## <a id="ref">Reference</a>
+The license agreement for data usage implies the citation of the paper above. Please notice that citing the dataset URL instead of the publications would not be compliant with this license agreement. You can read the LICENSE from [LICENSE](https://github.com/dhu-mmct/DHU-MMCT/blob/main/LICENSE.md).
+
+
 ## <a id="con">Contact</a>
 If you have any concerns, please contact [2212534@mail.dhu.edu.cnn](2212534@mail.dhu.edu.cn)
 
