@@ -1,5 +1,4 @@
 # Multi-Moving Camera Pedestrian Tracking with a New Dataset and Global Link Model
-[![](http://img.shields.io/badge/cs.CV-arXiv%3A2302.07676-B31B1B.svg)](###)
 [![](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-orange)](https://huggingface.co/datasets/jellyShuang/MMCT)
 
 This repository contains the details of the dataset and the Pytorch implementation of the Paper:
