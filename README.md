@@ -28,19 +28,22 @@ Examples of tracking results are as follows：
 1,1,970.9640502929688,595.5170288085938,31.15667724609375,69.88330078125,1,-1,-1,-1
 ```
 
-2. Run `eval_motchallenge.py` to calculate the metrics for single camera tracking:
-defined `goundtruth` and `tests` as your own path.
+2. Run `eval_motchallenge.py` to calculate the metrics for single camera tracking: defined `goundtruth` and `tests` as your own path.
 ```python
 python eval_motchallenge.py
 ```
 
 * Obtain tracking results for **multi-camera tracking** by following several steps below:
-1. Run ```bash src/generate_cpd.sh``` to get the matching file (the input is the pickle feature file)
+1. Run ```bash src/generate_cpd.sh``` to get the matching file (the input is the pickle feature file. Use Re-ID features, run `bash fast-reid-master/gen_feat.sh` first)
 ```bash
+# optional
+bash fast-reid-master/gen_feat.sh
+# generate the matching results
 bash generate_cpd.sh
 ```
 2. Run ```bash src/generate_ts.sh``` and ```bash src/cpd.sh``` to get the required directory results. You can copy these two files to your own directory (put the ts generated under the single camera into the corresponding folder as required, ```cpd.sh```generates the corresponding directory structure)
 ```bash
+# get the corresponding directory structure
 bash generate_ts.sh
 bash cpd.sh
 ```
