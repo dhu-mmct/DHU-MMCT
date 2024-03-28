@@ -34,7 +34,7 @@ python eval_motchallenge.py
 ```
 
 * Obtain tracking results for **multi-camera tracking** by following several steps below:
-1. Run ```bash src/generate_cpd.sh``` to get the matching file (the input is the pickle feature file. Use Re-ID features, run `bash fast-reid-master/gen_feat.sh` first)
+1. Run ```bash src/generate_cpd.sh``` to get the matching file (the input is the pickle feature file. If using Re-ID features for cross-camera association, run `bash fast-reid-master/gen_feat.sh` first)
 ```bash
 # optional
 bash fast-reid-master/gen_feat.sh
