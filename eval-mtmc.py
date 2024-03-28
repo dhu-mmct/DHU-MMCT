@@ -2,6 +2,35 @@
 """
 Evaluate submissions for the AI City Challenge.
 """
+"""
+v2: add OVERALL
+usage: python eval-mtmc.py <ground_truth directory> <prediction directory>
+
+python eval-mtmc.py gt_new ts
+├── eval-mtmc.py
+├── gt_new-root
+│   ├── S1
+│   │   └── gt_new.txt
+│   ├── S2
+│   │   └── gt_new.txt
+│   ├── S3
+│   │   └── gt_new.txt
+│   ├── S*
+│   *    └── gt_new.txt
+│   *** 
+└── ts-root
+    ├── S1.txt
+    ├── S2.txt
+    ├── S3.txt
+    ├── S*.txt
+    ***
+"""
+
+import argparse
+from collections import OrderedDict
+import logging
+from pathlib import Path
+import glob
 import os
 import sys
 import zipfile
@@ -19,9 +48,6 @@ import warnings
 warnings.filterwarnings("ignore")
 from numba import *
 
-
-# 计算跨相机多目标跟踪的指标
-
 def compare_dataframes(gts, ts):
     """Builds accumulator for each sequence."""
     accs = []
@@ -38,8 +64,6 @@ def compare_dataframes(gts, ts):
     return accs, names
 
 
-
-
 def get_args():
     parser = ArgumentParser(add_help=False, usage=usageMsg())
     parser.add_argument("data", nargs=2, help="Path to <test_labels> <predicted_labels>.")
@@ -49,12 +73,13 @@ def get_args():
     parser.add_argument('-rd', '--roidir', type=str, default='ROIs', help="Region of Interest images directory.")
     return parser.parse_args()
 
+
 def usageMsg():
-    return """  python3 eval.py <ground_truth> <prediction> --dstype <dstype>
+    return """  python3 eval-mtmc.py <ground_truth directory> <prediction directory> --dstype <dstype>
 
 Details for expected formats can be found at https://www.aicitychallenge.org/.
 
-See `python3 eval.py --help` for more info.
+See `python3 eval-mtmc.py --help` for more info.
 
 """
 
@@ -109,7 +134,7 @@ def readData(fpath):
         Data frame containing the data loaded from the stream with optionally assigned column names.
         No index is set on the data.
     Exceptions
-    ----------
+    -------
         May raise a ValueError exception if file cannot be opened or read.
     """
     names = ['CameraId','Id', 'FrameId', 'X', 'Y', 'Width', 'Height', 'Xworld', 'Yworld']
@@ -380,7 +405,7 @@ def eval(test, pred, **kwargs):
 
         return df
 
-    def compare_dataframes_mtmc(gts, ts):
+    def compare_dataframes_mtmc(gtss, tss):
         """Compute ID-based evaluation metrics for multi-camera multi-object tracking.
 
         Params
@@ -394,37 +419,43 @@ def eval(test, pred, **kwargs):
         df : pandas.DataFrame
             Results of the evaluations in a df with only the 'idf1', 'idp', and 'idr' columns.
         """
-        gtds = []
-        tsds = []
-        gtcams = gts['CameraId'].drop_duplicates().tolist()
-        tscams = ts['CameraId'].drop_duplicates().tolist()
-        maxFrameId = 0;
 
-        for k in sorted(gtcams):
-            gtd = gts.query('CameraId == %d' % k)
-            gtd = gtd[['FrameId', 'Id', 'X', 'Y', 'Width', 'Height']]
-            # max FrameId in gtd only
-            mfid = gtd['FrameId'].max()
-            gtd['FrameId'] += maxFrameId
-            gtd = gtd.set_index(['FrameId', 'Id'])
-            gtds.append(gtd)
+        for a,b in zip(gtss,tss):
+            gts=gtss[a]
+            ts=tss[b]
+            gtds = []
+            tsds = []
+            gtcams = gts['CameraId'].drop_duplicates().tolist()
+            tscams = ts['CameraId'].drop_duplicates().tolist()
+            maxFrameId = 0
 
-            if k in tscams:
-                tsd = ts.query('CameraId == %d' % k)
-                tsd = tsd[['FrameId', 'Id', 'X', 'Y', 'Width', 'Height']]
-                # max FrameId among both gtd and tsd
-                mfid = max(mfid, tsd['FrameId'].max())
-                tsd['FrameId'] += maxFrameId
-                tsd = tsd.set_index(['FrameId', 'Id'])
-                tsds.append(tsd)
+            for k in sorted(gtcams):
+                gtd = gts.query('CameraId == %d' % k)
+                gtd = gtd[['FrameId', 'Id', 'X', 'Y', 'Width', 'Height']]
+                # max FrameId in gtd only
+                mfid = gtd['FrameId'].max()
+                gtd['FrameId'] += maxFrameId
+                gtd = gtd.set_index(['FrameId', 'Id'])
+                gtds.append(gtd)
 
-            maxFrameId += mfid
+                if k in tscams:
+                    tsd = ts.query('CameraId == %d' % k)
+                    tsd = tsd[['FrameId', 'Id', 'X', 'Y', 'Width', 'Height']]
+                    # max FrameId among both gtd and tsd
+                    mfid = max(mfid, tsd['FrameId'].max())
+                    tsd['FrameId'] += maxFrameId
+                    tsd = tsd.set_index(['FrameId', 'Id'])
+                    tsds.append(tsd)
 
+                maxFrameId += mfid
+
+            gtss[a]=pd.concat(gtds)
+            tss[b]=pd.concat(tsds)
         # compute multi-camera tracking evaluation stats
-        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou')
+        multiCamAcc, names = compare_dataframes(gtss, tss)
         metrics=list(mm.metrics.motchallenge_metrics)
         metrics.extend(['num_frames','idfp','idfn','idtp'])
-        summary = mh.compute(multiCamAcc, metrics=metrics, name='MultiCam')
+        summary = mh.compute_many(multiCamAcc, metrics=metrics, names=names,generate_overall=True)
 
         return summary
 
@@ -446,25 +477,38 @@ def usage(msg=None):
     print("\nUsage: %s" % usageMsg())
     exit()
 
+def save_summary(summary, filename):
+    import pandas as pd
+    writer = pd.ExcelWriter(filename)
+    summary.to_excel(writer)
+    writer.save()
+
+
+# #运行python eval-mtmc.py gt ts
 
 if __name__ == '__main__':
-    args = get_args();
-    args.data = '/home/shuanghong/Downloads/github/dataset/scene/1/gts/'
+    args = get_args()
     if not args.data or len(args.data) < 2:
         usage("Incorrect number of arguments. Must provide paths for the test (ground truth) and predicitons.")
 
-    test = readData(args.data[0])
-    pred = readData(args.data[1])
+    gtfiles = glob.glob(os.path.join(args.data[0], '*/gt.txt'))
+    tsfiles = [f for f in glob.glob(os.path.join(args.data[1], '*.txt')) if not os.path.basename(f).startswith('eval')]
+    gtfiles=sorted(gtfiles)
+    tsfiles=sorted(tsfiles)
+    test = OrderedDict([(Path(f).parts[-2], readData(f)) for f in gtfiles])
+    pred = OrderedDict([(os.path.splitext(Path(f).parts[-1])[0], readData(f)) for f in tsfiles])
+
     try:
         summary = eval(test, pred, mread=args.mread, dstype=args.dstype, roidir=args.roidir)
-        print_results(summary, mread=args.mread)
         mh = mm.metrics.create()
         print(mm.io.render_summary(summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names))
+
+        # print(mm.io.render_summary(summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metrmes))
+        save_summary(summary, 'cross_camera_results.xlsx')
+
     except Exception as e:
         if args.mread:
             print('{"error": "%s"}' % repr(e))
         else:
             print("Error: %s" % repr(e))
         traceback.print_exc()
-
-

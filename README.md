@@ -1,62 +1,69 @@
-# Multi-Moving Camera Pedestrian Tracking with a New Dataset and Global Link Model
-[![](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-orange)](https://huggingface.co/datasets/jellyShuang/MMCT)
+# MMCT
 
-This repository contains the details of the dataset and the Pytorch implementation of the Paper:
-[Multi-Moving Camera Pedestrian Tracking with a New Dataset and Global Link Model](##)
-
+A simple baseline for multi-target multi-moving-camera tracking:
+![](assets/pipeline.jpg)
+> [**Towards Effective Multi-Moving Camera Tracking: A New Dataset and Lightweight Link Model**](http://arxiv.org/abs/2004.01888),            
+> Yanting Zhang, Shuanghong Wang, Qingxiang Wang, Cairong Yan,Rui Fan,        
+> *([arXiv 2312.11035](http://arxiv.org/abs/2312.11035))* *([Project webpage](https://dhu-mmct.github.io/))*
 ## Abstract
-Ensuring driving safety for autonomous vehicles has become increasingly crucial, highlighting the need for systematic tracking of pedestrians on the road. Most vehicles are equipped with visual sensors, however, the large-scale visual dataset from different agents has not been well studied. Most of the multi-target multi-camera (MTMC) tracking systems are composed of two modules: single-camera tracking (SCT) and inter-camera tracking (ICT). To reliably coordinate between them, MTMC tracking has been a very complicated task, while tracking across multi-moving cameras makes it even more challenging. In this paper, we focus on multi-target multi-moving camera (MTMMC) tracking, which is attracting increasing attention from the research community. Observing there are few datasets for MTMMC tracking, we collect a new dataset, called Multi-Moving Camera Track (MMCT), which contains sequences under various driving scenarios. To address the common problems of identity switch easily faced by most existing SCT trackers, especially for moving cameras due to ego-motion between the camera and targets, a lightweight appearance-free global link model, called Linker, is proposed to mitigate the identity switch by associating two disjoint tracklets of the same target into a complete trajectory within the same camera. Incorporated with Linker, existing SCT trackers generally obtain a significant improvement. Moreover, a strong baseline approach of re-identification (Re-ID) is effectively incorporated to extract robust appearance features under varying surroundings for pedestrian association across moving cameras for ICT, resulting in a much improved MTMMC tracking system, which can constitute a step further towards coordinated mining of multiple moving cameras.
+Ensuring driving safety for autonomous vehicles has become increasingly crucial, highlighting the need for systematic tracking of pedestrians on the road. Most vehicles are equipped with visual sensors, however, the large-scale visual dataset from different agents has not been well studied yet. Basically, most of the multi-target multi-camera (MTMC) tracking systems are composed of two modules: single camera tracking (SCT) and inter-camera tracking (ICT). To reliably coordinate between them, MTMC tracking has been a very complicated task, while tracking across multi-moving cameras makes it even more challenging. In this paper, we focus on multi-target multi-moving camera (MTMMC) tracking, which is attracting increasing attention from the research community. Observing there are few datasets for MTMMC tracking, we collect a new dataset, called Multi-Moving Camera Track (MMCT), which contains sequences under various driving scenarios. To address the common problems of identity switch easily faced by most existing SCT trackers, especially for moving cameras due to ego-motion between the camera and targets, a lightweight appearance-free global link model, called Linker, is proposed to mitigate the identity switch by associating two disjoint tracklets of the same target into a complete trajectory within the same camera. Incorporated with Linker, existing SCT trackers generally obtain a significant improvement. Moreover, a strong baseline approach of re-identification (Re-ID) is effectively incorporated to extract robust appearance features under varying surroundings for pedestrian association across moving cameras for ICT, resulting in a much improved MTMMC tracking system, which can constitute a step further towards coordinated mining of multiple moving cameras.
 
-- **<a href="#des"> <u>Dataset Description</u>**</a>
-  - **<a href="#str"> <u>Dataset Structure</u>**</a>
-  - **<a href="#dow"> <u>Dataset Downloads</u>**</a>
 
-## <a id="des">Dataset Description</a>
-We collect data in 12 distinct scenarios: ''A', 'B',' C',...'L''. Each scenario may include the interaction of two or three cameras on different cars. For example, scene A includes two sequences of `A-I` and `A-II`. There are 32 sequences in total.
+## Installation
 
-### <a id="str">Dataset Structure</a>
+Please follow the Installation of [FairMOT](https://github.com/ifzhang/FairMOT).
+
+## Data preparation
+Please refer to ```README_DATASET``` for details. The download link is [here](https://huggingface.co/datasets/jellyShuang/MMCT).
+
+## Tracking
+
+* Obtain tracking results for **single camera tracking**
+1. Run `bash run_img.sh`, and get the tracking results and feature files (.pickle) under single camera 
+```bash
+bash src/run_img.sh
 ```
-MMCT
-├── data
-│ ├── gps
-│ └── labelS
-└── images
- ├── 1
- │ ├── A
- │ │ ├── IMG_0098-frag-s1-a-fps5.mp4
- │ │ └── jpg
- │ └── C
- │ ├── IMG_0559-frag-s1-c-fps5.mp4
- │ ├── jpg
- ├── 2
- │ ├── A
- │ │ ├── IMG_0094-frag-s2-a-fps5.mp4
- │ │ ├── jpg
- │ ├── B
- │ │ ├── IMG_2248-frag-s2-b-fps5.mp4
- │ │ ├── jpg
- ...
- ├── 12
- │ ├── A
- │ │ ├── IMG_0104-frag-s12-a-fps5.mp4
- │ │ ├── jpg
- │ ├── B
- │ │ ├── IMG_2254-frag-s12-b-fps5.mp4
- │ │ ├── jpg
- │ └── C
- │ ├── IMG_0569-frag-s12-c-fps5.mp4
- │ ├── jpg
+Examples of tracking results are as follows：
+```text
+1,1,970.9640502929688,595.5170288085938,31.15667724609375,69.88330078125,1,-1,-1,-1
 ```
 
-### <a id="dow">Dataset Downloads</a>
-The whole dataset can be downloaded from [Huggingface](https://huggingface.co/datasets/jellyShuang/MMCT). **Note that each file needs to be unzipped by the password. You can decompress each `.zip` file in its folder after sending us (2212534@mail.dhu.edu.cn, ytzhang@dhu.edu.cn) the [LICENSE](https://github.com/shengyuhao/DIVOTrack/blob/main/LICENSE.md). in any format.** 
+2. Run `eval_motchallenge.py` to calculate the metrics for single camera tracking:
+defined `goundtruth` and `tests` as your own path.
+```python
+python eval_motchallenge.py
+```
 
+* Obtain tracking results for **multi-camera tracking** by following several steps below:
+1. Run ```bash src/generate_cpd.sh``` to get the matching file (the input is the pickle feature file)
+```bash
+bash generate_cpd.sh
+```
+2. Run ```bash src/generate_ts.sh``` and ```bash src/cpd.sh``` to get the required directory results. You can copy these two files to your own directory (put the ts generated under the single camera into the corresponding folder as required, ```cpd.sh```generates the corresponding directory structure)
+```bash
+bash generate_ts.sh
+bash cpd.sh
+```
+3. Run ```bash src/generate_GT.sh``` to get tracking results under multiple cameras.
+```bash
+bash generate_GT.sh
+```
+4. Calculate the metrics for multi-camera tracking by running ```python eval-mtmc.py gt ts``` (``gt`` is the groundtruth folder, ``ts`` is the tracking results folder under multiple cameras)
+```python
+python eval-mtmc.py gt ts
+```
 
-## <a id="ref">Reference</a>
-The license agreement for data usage implies the citation of the paper above. Please notice that citing the dataset URL instead of the publications would not be compliant with this license agreement. You can read the LICENSE from [LICENSE](https://github.com/dhu-mmct/DHU-MMCT/blob/main/LICENSE.md).
+## Acknowledgement
+A large part of the code is borrowed from [ifzhang/FairMOT](https://github.com/ifzhang/FairMOT). Thanks for their wonderful works.
 
+## Citation
 
-## <a id="con">Contact</a>
-If you have any concerns, please contact [2212534@mail.dhu.edu.cn](2212534@mail.dhu.edu.cn)
-
+```
+@article{zhang2023multi,
+   title={Multi-Moving Camera Pedestrian Tracking with a New Dataset and Global Link Model},
+   author={Zhang, Yanting and Wang, Shuanghong and Wang, Qingxiang and Yan, Cairong and Fan, Rui},
+   journal={arXiv preprint arXiv:2312.11035},
+   year={2023} 
+}
+```
 
