@@ -19,7 +19,7 @@ Please refer to ```README_DATASET``` for details. The download link is [here](ht
 ## Tracking
 
 * Obtain tracking results for **single camera tracking**
-1. Run `bash run_img.sh`, and get the tracking results and feature files (.pickle) under single camera 
+1. Run `bash run_img.sh`, and obtain the tracking results and feature files (.pickle) under each single camera. 
 ```bash
 bash src/run_img.sh
 ```
@@ -41,12 +41,22 @@ bash fast-reid-master/gen_feat.sh
 # generate the matching results
 bash generate_cpd.sh
 ```
+Examples of cpd results are as follows：
+```bash
+# camera_a camera_b a_id b_id
+1,2,5,2
+1,2,2,1
+1,3,5,3
+1,3,2,2
+```
+
 2. Run ```bash src/generate_ts.sh``` and ```bash src/cpd.sh``` to get the required directory results. You can copy these two files to your own directory (put the ts generated under the single camera into the corresponding folder as required, ```cpd.sh```generates the corresponding directory structure)
 ```bash
 # get the corresponding directory structure
 bash generate_ts.sh
 bash cpd.sh
 ```
+
 3. Run ```bash src/generate_GT.sh``` to get tracking results under multiple cameras.
 ```bash
 bash generate_GT.sh
