@@ -66,7 +66,10 @@ bash generate_GT.sh
 python eval-mtmc.py gt ts
 ```
 
+
+
 ## Acknowledgement
+
 A large part of the code is borrowed from [ifzhang/FairMOT](https://github.com/ifzhang/FairMOT). Thanks for their wonderful works.
 
 
