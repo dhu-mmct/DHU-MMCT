@@ -2,7 +2,7 @@
 
 A simple baseline for multi-target multi-moving-camera tracking:
 ![](assets/pipeline.jpg)
-> **Towards Effective Multi-Moving-Camera Tracking: A New Dataset and Lightweight Link Model**,            
+> **Towards Effective Multi-Moving-Camera Tracking with A Lightweight Link Model**,            
 > Yanting Zhang, Shuanghong Wang, Qingxiang Wang, Rui Fan,Gaoang Wang and Jenq-Neng Hwang
 >
 > *([Project webpage](https://dhu-mmct.github.io/))*
